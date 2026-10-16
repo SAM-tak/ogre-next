@@ -624,7 +624,7 @@ namespace Ogre
         case PbsBrdf::BlinnPhong:
             outString += "blinn_phong_no_diffuse_fresnel";
             break;
-        case PbsBrdf::DefaultUncorrelated:
+        case static_cast<uint32>( PbsBrdf::DefaultUncorrelated ):
             outString += "default_uncorrelated";
             break;
         case PbsBrdf::DefaultHasDiffuseFresnel:

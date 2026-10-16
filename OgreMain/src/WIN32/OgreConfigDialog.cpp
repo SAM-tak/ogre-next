@@ -54,7 +54,7 @@ namespace Ogre
 #        endif
 #    endif
 #else
-        static const TCHAR staticVar;
+        static const TCHAR staticVar = 0;
         GetModuleHandleEx(
             GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
             &staticVar, &mHInstance );

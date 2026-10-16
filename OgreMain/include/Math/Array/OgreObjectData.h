@@ -77,7 +77,7 @@ namespace Ogre
         */
         RealAsUint *RESTRICT_ALIAS mDistanceToCamera;
 
-#if OGRE_COMPILER != OGRE_COMPILER_CLANG
+#if OGRE_COMPILER != OGRE_COMPILER_CLANG && !defined( __clang__ )
         /// Upper distance to still render. Ours is mUpperDistance[mIndex]
         Real *RESTRICT_ALIAS mUpperDistance[2];
 #else

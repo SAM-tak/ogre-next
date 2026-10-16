@@ -142,6 +142,10 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
   # This is a set of sensible warnings that provide meaningful output
   set(OGRE_WARNING_FLAGS
       "-Wall -Winit-self -Wcast-qual -Wwrite-strings -Wextra -Wno-unused-parameter -Wshadow -Wimplicit-fallthrough")
+  if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    # clang-cl interprets bare -Wall as /Wall (-Weverything).
+    string(REPLACE "-Wall " "/clang:-Wall " OGRE_WARNING_FLAGS "${OGRE_WARNING_FLAGS}")
+  endif()
 
   if( CMAKE_COMPILER_IS_GNUCXX )
     # On GCC:
@@ -171,7 +175,12 @@ if (MSVC)
 	# set variable to state that we are using jom makefiles
 	set(JOM TRUE)
   endif ()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast /Zc:__cplusplus")
+  set(OGRE_MSVC_FP_MODEL fast)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # OGRE uses infinity for unbounded objects; clang-cl's fast mode assumes finite values.
+    set(OGRE_MSVC_FP_MODEL precise)
+  endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:${OGRE_MSVC_FP_MODEL} /Zc:__cplusplus")
   if (NOT OGRE_PLATFORM_X64)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
   endif()
@@ -183,7 +192,7 @@ if (MSVC)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
   else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:${OGRE_MSVC_FP_MODEL}")
   endif ()
   if (OGRE_UNITY_BUILD)
     # object files can get large with Unity builds
@@ -238,7 +247,7 @@ if ((CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX) AND NOT MINGW)
   endif(OGRE_GCC_VISIBILITY)
 
   # Fix x64 issues on Linux
-  if(OGRE_PLATFORM_X64 AND NOT APPLE)
+  if(OGRE_PLATFORM_X64 AND NOT APPLE AND NOT WIN32)
     add_definitions(-fPIC)
   endif()
 endif ((CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX) AND NOT MINGW)
@@ -680,7 +689,9 @@ include(ConfigureBuild)
 # disable (useless) compiler warnings on project level
 ###################################################################
 if(MSVC)
-	add_definitions( /wd4786 /wd4503 /wd4251 /wd4275 /wd4290 /wd4661 /wd4996 /wd4127 /wd4100)
+  foreach(warning IN ITEMS 4786 4503 4251 4275 4290 4661 4996 4127 4100)
+    add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:/wd${warning}>")
+  endforeach()
 endif()
 
 ##################################################################

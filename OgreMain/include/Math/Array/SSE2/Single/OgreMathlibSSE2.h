@@ -583,7 +583,9 @@ namespace Ogre
         static void SinCos4( ArrayReal x, ArrayReal &outSin, ArrayReal &outCos );
     };
 
-#    if OGRE_COMPILER != OGRE_COMPILER_CLANG && OGRE_COMPILER != OGRE_COMPILER_GNUC
+    // clang-cl uses the MSVC ABI but has native vector operators like other Clang drivers.
+#    if OGRE_COMPILER != OGRE_COMPILER_CLANG && OGRE_COMPILER != OGRE_COMPILER_GNUC && \
+        !defined( __clang__ )
     // clang-format off
     inline ArrayReal operator - ( ArrayReal l )                 { return _mm_xor_ps( l, MathlibSSE2::SIGN_MASK ); }
     inline ArrayReal operator + ( ArrayReal l, Real r )         { return _mm_add_ps( l, _mm_set1_ps( r ) ); }
