@@ -375,12 +375,27 @@ namespace Ogre
             wcex.cbClsExtra = 0;
             wcex.cbWndExtra = 0;
             wcex.hInstance = mHinstance;
-            wcex.hIcon = LoadIcon( (HINSTANCE)0, (LPCTSTR)IDI_APPLICATION );
+            // Like Explorer, use the executable's first icon; the stock one if it has none.
+            HICON icons[2] = {};
+            EnumResourceNamesW(
+                GetModuleHandle( 0 ), (LPCWSTR)RT_GROUP_ICON,
+                []( HMODULE module, LPCWSTR, LPWSTR name, LONG_PTR param ) -> BOOL
+                {
+                    HICON *out = reinterpret_cast<HICON *>( param );
+                    out[0] = (HICON)LoadImageW( module, name, IMAGE_ICON, 0, 0,
+                                                LR_DEFAULTSIZE | LR_SHARED );
+                    out[1] = (HICON)LoadImageW( module, name, IMAGE_ICON,
+                                                GetSystemMetrics( SM_CXSMICON ),
+                                                GetSystemMetrics( SM_CYSMICON ), LR_SHARED );
+                    return FALSE;
+                },
+                reinterpret_cast<LONG_PTR>( icons ) );
+            wcex.hIcon = icons[0] ? icons[0] : LoadIcon( (HINSTANCE)0, (LPCTSTR)IDI_APPLICATION );
             wcex.hCursor = LoadCursor( (HINSTANCE)0, IDC_ARROW );
             wcex.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
             wcex.lpszMenuName = 0;
             wcex.lpszClassName = OGRE_VULKAN_WIN_CLASS_NAME;
-            wcex.hIconSm = 0;
+            wcex.hIconSm = icons[1];
 
             if( enableDoubleClick )
                 wcex.style |= CS_DBLCLKS;
