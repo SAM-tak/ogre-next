@@ -171,7 +171,6 @@ namespace Ogre
         int left = -1;  // Defaults to screen center
         int top = -1;   // Defaults to screen center
         HWND parentHwnd = 0;
-        bool hidden = false;
         String border;
         bool outerSize = false;
         mHwGamma = false;
@@ -196,7 +195,7 @@ namespace Ogre
                 top = StringConverter::parseInt( opt->second );
             opt = miscParams->find( "hidden" );
             if( opt != end )
-                hidden = StringConverter::parseBool( opt->second );
+                mHidden = StringConverter::parseBool( opt->second );
 
             parseSharedParams( miscParams );
 
@@ -288,8 +287,8 @@ namespace Ogre
             strcpy( mDeviceName, monitorInfoEx.szDevice );
 
             // Update window style flags.
-            mFullscreenWinStyle = ( hidden ? 0 : WS_VISIBLE ) | WS_CLIPCHILDREN | WS_POPUP;
-            mWindowedWinStyle = ( hidden ? 0 : WS_VISIBLE ) | WS_CLIPCHILDREN;
+            mFullscreenWinStyle = ( mHidden ? 0 : WS_VISIBLE ) | WS_CLIPCHILDREN | WS_POPUP;
+            mWindowedWinStyle = ( mHidden ? 0 : WS_VISIBLE ) | WS_CLIPCHILDREN;
 
             if( parentHwnd )
             {
