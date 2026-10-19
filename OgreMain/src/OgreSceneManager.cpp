@@ -886,10 +886,11 @@ namespace Ogre
             }
         }
 
-        if( mSky )
+        // Rectangles kept on the indestructible root are still attached.
+        if( mSky && !mSky->isAttached() )
             mSceneRoot[SCENE_STATIC]->attachObject( mSky );
 
-        if( mRadialDensityMask )
+        if( mRadialDensityMask && !mRadialDensityMask->getRectangle()->isAttached() )
             mSceneRoot[SCENE_STATIC]->attachObject( mRadialDensityMask->getRectangle() );
 
         if( reattachCameras )
