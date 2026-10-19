@@ -197,7 +197,8 @@ namespace Ogre
         pos.y = Real( ( probeIdx % ( settings.mNumProbes[0] * settings.mNumProbes[1] ) ) /
                       settings.mNumProbes[0] );
         pos.z = Real( probeIdx / ( settings.mNumProbes[0] * settings.mNumProbes[1] ) );
-        pos += 0.5f;
+        // Probe i is at grid position i, where the PBS shader samples it (and where the VCT
+        // generator places it). Cell centres would put every probe half a cell off.
 
         pos /= settings.getNumProbes3f();
         pos *= mCreator->mFieldSize;
@@ -236,7 +237,7 @@ namespace Ogre
 
         Ogre::Vector2 projectionAB = mCamera->getProjectionParamsAB();
         mProjectionABParam->setManualValue( projectionAB );
-        mNumProbesParam->setManualValue( mCreator->mSettings.getNumProbes3f() );
+        mNumProbesParam->setManualValue( mCreator->mSettings.getNumProbes3f() / mCreator->mFieldSize );
 
         for( size_t i = numProbesProcessed; i < maxProbeToProcess; ++i )
         {

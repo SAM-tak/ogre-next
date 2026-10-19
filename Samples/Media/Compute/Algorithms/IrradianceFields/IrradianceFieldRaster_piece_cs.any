@@ -109,7 +109,10 @@
 					linearDepth = p_projectionParams.y / (dist - p_projectionParams.x);
 
 					// Put dist in the same space it will be evaluted in during the pixel shader
-					dist = dot( abs( linearDepth * samplingDir ), p_numProbes.xyz );
+					// (probe grid units; p_numProbes holds probes per unit). linearDepth runs
+					// along the cube face's axis, the largest component of samplingDir.
+					dist = length( samplingDir * ( linearDepth / max( abs( samplingDir.x ),
+							max( abs( samplingDir.y ), abs( samplingDir.z ) ) ) ) * p_numProbes.xyz );
 
 					depthData.x += dist;
 					depthData.y += dist * dist;
