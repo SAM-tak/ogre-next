@@ -56,10 +56,10 @@ namespace Ogre
         stbi_set_unpremultiply_on_load( 1 );
 
         LogManager::getSingleton().logMessage( LML_NORMAL,
-                                               "stb_image - v2.27 - public domain JPEG/PNG reader" );
+                                               "stb_image - v2.27 - public domain JPEG/PNG/HDR reader" );
 
         // Register codecs
-        String exts = "jpeg,jpg,png,bmp,psd,tga,gif,pic,ppm,pgm";
+        String exts = "jpeg,jpg,png,bmp,psd,tga,gif,pic,ppm,pgm,hdr";
         StringVector extsVector = StringUtil::split( exts, "," );
         for( StringVector::iterator v = extsVector.begin(); v != extsVector.end(); ++v )
         {
@@ -107,6 +107,40 @@ namespace Ogre
         MemoryDataStream memStream( input, true );
 
         int width, height, components;
+        if( stbi_is_hdr_from_memory( memStream.getPtr(), static_cast<int>( memStream.size() ) ) )
+        {
+            // Radiance HDR: linear floating point, always expanded to RGBA.
+            float *hdrData = stbi_loadf_from_memory( memStream.getPtr(),
+                                                     static_cast<int>( memStream.size() ), &width,
+                                                     &height, &components, 4 );
+            if( !hdrData )
+            {
+                OGRE_EXCEPT( Exception::ERR_INTERNAL_ERROR,
+                             "Error decoding image: " + String( stbi_failure_reason() ),
+                             "STBIImageCodec::decode" );
+            }
+            ImageData2 *imgData = OGRE_NEW ImageData2();
+            imgData->box.depth = 1u;
+            imgData->box.numSlices = 1u;
+            imgData->box.width = static_cast<uint32>( width );
+            imgData->box.height = static_cast<uint32>( height );
+            imgData->numMipmaps = 1u;
+            imgData->textureType = TextureTypes::Type2D;
+            imgData->format = PFG_RGBA32_FLOAT;
+            imgData->box.bytesPerPixel = PixelFormatGpuUtils::getBytesPerPixel( imgData->format );
+            imgData->box.bytesPerRow = imgData->box.bytesPerPixel * imgData->box.width;
+            imgData->box.bytesPerImage =
+                size_t( imgData->box.bytesPerRow ) * size_t( imgData->box.height );
+            imgData->box.data = OGRE_MALLOC_SIMD( imgData->box.bytesPerImage, MEMCATEGORY_RESOURCE );
+            memcpy( imgData->box.data, hdrData, imgData->box.bytesPerImage );
+            stbi_image_free( hdrData );
+
+            DecodeResult ret;
+            ret.first.reset();
+            ret.second = CodecDataPtr( imgData );
+            return ret;
+        }
+
         stbi_uc *pixelData = stbi_load_from_memory(
             memStream.getPtr(), static_cast<int>( memStream.size() ), &width, &height, &components, 0 );
 
