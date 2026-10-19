@@ -1112,9 +1112,11 @@ namespace Ogre
 
             if( datablock->mTexturesDescSet )
             {
-                const bool envMap = datablock->getTexture( PBSM_REFLECTION ) != 0;
+                // Casters declare no texEnvProbeMap, yet backends that bind the whole
+                // descriptor set (Vulkan) still bind the reflection map. Count it among
+                // the declared texture slots so the root layout matches the set.
                 setProperty( kNoTid, PbsProperty::NumTextures,
-                             int32( datablock->mTexturesDescSet->mTextures.size() - envMap ) );
+                             int32( datablock->mTexturesDescSet->mTextures.size() ) );
 
                 setTextureProperty( kNoTid, PbsProperty::DiffuseMap, datablock, PBSM_DIFFUSE );
                 setTextureProperty( kNoTid, PbsProperty::DetailWeightMap, datablock,
