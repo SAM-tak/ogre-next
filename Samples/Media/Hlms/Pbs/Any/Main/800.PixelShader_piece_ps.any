@@ -103,7 +103,7 @@
 		#define SampleRoughness( tex, sampler, uv, arrayIdx ) OGRE_SampleArray2DF16( tex, sampler, uv, arrayIdx )
 	@end
 	@property( emissive_map )
-		#define SampleEmissive( tex, sampler, uv, arrayIdx ) OGRE_SampleArray2DF16( tex, sampler, uv, arrayIdx ) @property( emissive_map_grayscale ).rrr@end
+		#define SampleEmissive( tex, sampler, uv, arrayIdx ) OGRE_SampleArray2DF16( tex, sampler, uv, arrayIdx ) @property( emissive_map_grayscale ).rrra@end
 	@end
 	@property( use_envprobe_map )
 		@property( syntax == metal )
