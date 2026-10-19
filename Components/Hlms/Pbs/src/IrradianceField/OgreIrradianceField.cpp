@@ -580,7 +580,8 @@ namespace Ogre
         uint32 irradWidth, irradHeight;
         mSettings.getIrradProbeFullResolution( irradWidth, irradHeight );
         mIrradianceTex->setResolution( irradWidth, irradHeight );
-        mIrradianceTex->setPixelFormat( PFG_R10G10B10A2_UNORM );
+        // Half float keeps HDR irradiance (bright skies, sunlit bounces) instead of clipping at 1.
+        mIrradianceTex->setPixelFormat( PFG_RGBA16_FLOAT );
 
         uint32 depthWidth, depthHeight;
         mSettings.getDepthProbeFullResolution( depthWidth, depthHeight );
