@@ -142,6 +142,10 @@
 
 	midf3 pccEnvS = midf3_c( 0, 0, 0 );
 	midf3 pccEnvD = midf3_c( 0, 0, 0 );
+	@property( irradiance_field && !cubemaps_as_diffuse_gi )
+		// What the probes saw as diffuse light around this normal (see below).
+		midf3 pccProbeD = midf3_c( 0, 0, 0 );
+	@end
 
 	@property( clear_coat )
 		midf3 clearCoatPccEnvS = midf3_c( 0, 0, 0 );
@@ -207,6 +211,11 @@
 				pccSingleEnvS = OGRE_SampleArrayCubeLevelF16(
 					texEnvProbeMap, samplerState@value(envMapRegSampler), float3( reflDirLS ),
 					probeCubemapIdx, @insertpiece( envSpecularRoughness ) );
+				@property( irradiance_field && !cubemaps_as_diffuse_gi )
+					pccProbeD += OGRE_SampleArrayCubeLevelF16(
+						texEnvProbeMap, samplerState@value(envMapRegSampler), normalLS,
+						probeCubemapIdx, 11.0 ).xyz * probeFade;
+				@end
 				@property( cubemaps_as_diffuse_gi )
 					pccEnvD += OGRE_SampleArrayCubeLevelF16(
 						texEnvProbeMap, samplerState@value(envMapRegSampler), normalLS,
@@ -225,6 +234,11 @@
 				pccSingleEnvS = OGRE_SampleArray2DLevelF16(
 					texEnvProbeMap, samplerState@value(envMapRegSampler), mapCubemapToDpm( reflDirLS ),
 					probeCubemapIdx, @insertpiece( envSpecularRoughness ) );
+				@property( irradiance_field && !cubemaps_as_diffuse_gi )
+					pccProbeD += OGRE_SampleArray2DLevelF16(
+						texEnvProbeMap, samplerState@value(envMapRegSampler), mapCubemapToDpm( normalLS ),
+						probeCubemapIdx, 11.0 ).xyz * probeFade;
+				@end
 				@property( cubemaps_as_diffuse_gi )
 					pccEnvD += OGRE_SampleArray2DLevelF16(
 						texEnvProbeMap, samplerState@value(envMapRegSampler), mapCubemapToDpm( normalLS ),
@@ -279,6 +293,17 @@
 		pccEnvD.xyz *= cubemapAccumWeight == _h( 0.0f ) ? _h( 1.0f ) : (_h( 1.0f ) / cubemapAccumWeight);
 	@end
 	pccEnvS.xyz *= cubemapAccumWeight == _h( 0.0f ) ? _h( 1.0f ) : (_h( 1.0f ) / cubemapAccumWeight);
+	@property( irradiance_field && !cubemaps_as_diffuse_gi )
+		// Reflection probe normalisation: a probe sees the scene from where it stands, so
+		// where the irradiance field is darker than what the probe saw (under an awning,
+		// indoors) its reflection is dimmed by the same ratio. Never brightened. The field
+		// averages over the hemisphere and sees less sky than the probe's lowest mip, so it is
+		// doubled: unshaded surfaces keep their reflections, only clearly darker ones lose them.
+		pccProbeD *= cubemapAccumWeight == _h( 0.0f ) ? _h( 1.0f ) : (_h( 1.0f ) / cubemapAccumWeight);
+		midf probeLuminance = dot( pccProbeD, midf3_c( 0.2126, 0.7152, 0.0722 ) );
+		midf localLuminance = dot( pixelData.envColourD.xyz, midf3_c( 0.2126, 0.7152, 0.0722 ) );
+		pccEnvS.xyz *= probeLuminance > _h( 0.0 ) ? saturate( _h( 2.0 ) * localLuminance / probeLuminance ) : _h( 1.0 );
+	@end
 
 	@property( clear_coat )
 		clearCoatPccEnvS *= cubemapAccumWeight == 0.0f ? 1.0f : ( 1.0f / cubemapAccumWeight );
