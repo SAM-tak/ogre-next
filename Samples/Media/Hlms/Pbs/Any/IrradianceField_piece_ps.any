@@ -114,6 +114,22 @@
 					   passBuf.irradianceField.viewToIrradianceFieldRow1,
 					   passBuf.irradianceField.viewToIrradianceFieldRow2 );
 
+	// The field's weight: 1 within half a cell of its outermost probes (surfaces just beyond
+	// them, such as the ground under the lowest layer, still use them), fading to 0 over
+	// fadeCells further out, where the ambient light takes over (see DoAmbientLighting);
+	// clamped probes there would give wrong light with hard edges.
+	float3 ifdLastProbe = float3( passBuf.irradianceField.numProbesAggregated.x - 1.0,
+								  passBuf.irradianceField.numProbesAggregated.y /
+									  passBuf.irradianceField.numProbesAggregated.x - 1.0,
+								  passBuf.irradianceField.numProbesZ - 1.0 );
+	float3 ifdOutside = max( max( -ifdGridPos, ifdGridPos - ifdLastProbe ), float3( 0, 0, 0 ) );
+	float ifdWeight = saturate( 1.0 - ( length( ifdOutside ) - 0.5 ) / passBuf.irradianceField.fadeCells );
+	// Interpolate between existing probes only: below the first probe trunc/fract would weigh
+	// the next layer up, and past the last one the cage would wrap into the next row.
+	// The visibility test still measures from the surface itself.
+	float3 ifdSurfacePos = ifdGridPos;
+	ifdGridPos = clamp( ifdGridPos, float3( 0, 0, 0 ), max( ifdLastProbe - 0.001, float3( 0, 0, 0 ) ) );
+
 	float3 ifdGridProbeOrigin = trunc( ifdGridPos );
 	float3 ifdSpaceNormal = normalize( transformDir3( pixelData.normal, //
 									   passBuf.irradianceField.viewToIrradianceFieldRow0,
@@ -138,7 +154,7 @@
 		IrfProbeIndex probeIdx =
 			getProbeIdx( probeOrigin, passBuf.irradianceField.numProbesAggregated.xy );
 
-		float3 dir = probeOrigin - ifdGridPos;
+		float3 dir = probeOrigin - ifdSurfacePos;
 		float r = length( dir );
 		dir *= 1.0 / r;
 
@@ -196,7 +212,7 @@
 
 //	ifdIrradiance = ifdIrradiance * ifdIrradiance;
 
-	pixelData.envColourD.xyz += ifdIrradiance * ( 1.0 / sumIfdWeight );
+	pixelData.envColourD.xyz += ifdIrradiance * ( ifdWeight / sumIfdWeight );
 @end
 }
 

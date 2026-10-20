@@ -914,6 +914,7 @@
 
 			@insertpiece( applyVoxelConeTracing )
 			@insertpiece( applyIrradianceField )
+			@insertpiece( custom_ps_diffuseGi )
 
 			@insertpiece( forwardPlusDoCubemaps )
 			@insertpiece( applyIrradianceVolumes )

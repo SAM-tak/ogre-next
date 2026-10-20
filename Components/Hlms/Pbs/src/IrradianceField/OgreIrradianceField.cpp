@@ -780,8 +780,8 @@ namespace Ogre
             float4x3 viewToIrradianceFieldRows;
 
             float2 numProbesAggregated;
-            float padding0;
-            float padding1;
+            float numProbesZ;
+            float fadeCells;
 
             float depthBorderedRes;
             float depthFullWidth;
@@ -813,8 +813,9 @@ namespace Ogre
         renderParams->viewToIrradianceFieldRows = xform;
         renderParams->numProbesAggregated.x = numProbes.x;
         renderParams->numProbesAggregated.y = numProbes.x * numProbes.y;
-        renderParams->padding0 = 0;
-        renderParams->padding1 = 0;
+        renderParams->numProbesZ = numProbes.z;
+        // From half a cell beyond the outermost probes, the field fades out over one cell.
+        renderParams->fadeCells = 1.0f;
 
         renderParams->depthBorderedRes = static_cast<float>( mSettings.getBorderedDepthResolution() );
         renderParams->depthFullWidth = fDepthFullWidth;

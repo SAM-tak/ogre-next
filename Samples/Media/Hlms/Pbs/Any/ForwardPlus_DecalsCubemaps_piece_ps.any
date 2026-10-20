@@ -142,7 +142,7 @@
 
 	midf3 pccEnvS = midf3_c( 0, 0, 0 );
 	midf3 pccEnvD = midf3_c( 0, 0, 0 );
-	@property( irradiance_field && !cubemaps_as_diffuse_gi )
+	@property( ( irradiance_field || custom_diffuse_gi ) && !cubemaps_as_diffuse_gi )
 		// What the probes saw as diffuse light around this normal (see below).
 		midf3 pccProbeD = midf3_c( 0, 0, 0 );
 	@end
@@ -211,7 +211,7 @@
 				pccSingleEnvS = OGRE_SampleArrayCubeLevelF16(
 					texEnvProbeMap, samplerState@value(envMapRegSampler), float3( reflDirLS ),
 					probeCubemapIdx, @insertpiece( envSpecularRoughness ) );
-				@property( irradiance_field && !cubemaps_as_diffuse_gi )
+				@property( ( irradiance_field || custom_diffuse_gi ) && !cubemaps_as_diffuse_gi )
 					pccProbeD += OGRE_SampleArrayCubeLevelF16(
 						texEnvProbeMap, samplerState@value(envMapRegSampler), normalLS,
 						probeCubemapIdx, 11.0 ).xyz * probeFade;
@@ -234,7 +234,7 @@
 				pccSingleEnvS = OGRE_SampleArray2DLevelF16(
 					texEnvProbeMap, samplerState@value(envMapRegSampler), mapCubemapToDpm( reflDirLS ),
 					probeCubemapIdx, @insertpiece( envSpecularRoughness ) );
-				@property( irradiance_field && !cubemaps_as_diffuse_gi )
+				@property( ( irradiance_field || custom_diffuse_gi ) && !cubemaps_as_diffuse_gi )
 					pccProbeD += OGRE_SampleArray2DLevelF16(
 						texEnvProbeMap, samplerState@value(envMapRegSampler), mapCubemapToDpm( normalLS ),
 						probeCubemapIdx, 11.0 ).xyz * probeFade;
@@ -293,7 +293,7 @@
 		pccEnvD.xyz *= cubemapAccumWeight == _h( 0.0f ) ? _h( 1.0f ) : (_h( 1.0f ) / cubemapAccumWeight);
 	@end
 	pccEnvS.xyz *= cubemapAccumWeight == _h( 0.0f ) ? _h( 1.0f ) : (_h( 1.0f ) / cubemapAccumWeight);
-	@property( irradiance_field && !cubemaps_as_diffuse_gi )
+	@property( ( irradiance_field || custom_diffuse_gi ) && !cubemaps_as_diffuse_gi )
 		// Reflection probe normalisation: a probe sees the scene from where it stands, so
 		// where the irradiance field is darker than what the probe saw (under an awning,
 		// indoors) its reflection is dimmed by the same ratio. Never brightened. The field

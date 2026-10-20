@@ -65,7 +65,18 @@
 		@end
 				float3 wsNormal = mul( passBuf.invViewMatCubemap, pixelData.normal );
 				wsNormal.x = -wsNormal.x;
-				pixelData.envColourD += irradianceSH( wsNormal PASSBUF_ARG );
+				@property( irradiance_field || custom_diffuse_gi )
+					// The spherical harmonics light what the irradiance field (or a custom
+					// diffuse GI setting ifdWeight) does not reach.
+					pixelData.envColourD += irradianceSH( wsNormal PASSBUF_ARG ) * ( 1.0 - ifdWeight );
+					// Beyond the bake they also stand in for the reflection probes, which
+					// replace the environment map.
+					float3 wsReflDir = mul( passBuf.invViewMatCubemap, pixelData.reflDir );
+					wsReflDir.x = -wsReflDir.x;
+					pixelData.envColourS += irradianceSH( wsReflDir PASSBUF_ARG ) * ( 1.0 - ifdWeight );
+				@else
+					pixelData.envColourD += irradianceSH( wsNormal PASSBUF_ARG );
+				@end
 		@property( vct_num_probes )
 			}
 		@end
