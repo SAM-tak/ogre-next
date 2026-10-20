@@ -818,9 +818,8 @@
 		pixelData.specular.xyz	= float3( 0.0f, 0.0f, 0.0f );
 @end
 
-		@property( !hlms_use_prepass )
-			@insertpiece( LoadGeomNormalData )
-		@end
+		// Point and spot shadows offset by the geometric normal, with a prepass too.
+		@insertpiece( LoadGeomNormalData )
 
 		@insertpiece( forwardPlusDoDecals )
 
