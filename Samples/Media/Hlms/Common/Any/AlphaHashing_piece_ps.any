@@ -71,6 +71,8 @@
 								 1.0f - ( ( 1 - x ) * ( 1 - x ) / ( 2 * a * ( 1 - a ) ) ) );
 	// Find our final, uniformly distributed alpha threshold
 	float alphaThreshold = ( x < ( 1 - a ) ) ? ( ( x < a ) ? cases.x : cases.y ) : cases.z;
+	// A hook to vary the threshold, e.g. per frame for temporal anti-aliasing to average.
+	@insertpiece( custom_alphaHashThreshold )
 	// Avoids alphaThreshold == 0.
 	alphaThreshold = clamp( alphaThreshold, 1.0e-6f, 1.0 );
 
