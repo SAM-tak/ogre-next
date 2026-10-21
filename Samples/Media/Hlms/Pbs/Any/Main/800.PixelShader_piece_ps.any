@@ -941,6 +941,8 @@
 			@insertpiece( DoPlanarReflectionsPS )
 
 			@insertpiece( DoAmbientLighting )
+			// The indirect light is complete: a hook to scale it (ambient occlusion).
+			@insertpiece( custom_ps_posAmbient )
 
 			@property( needs_env_brdf )
 				@insertpiece( BRDF_EnvMap )
