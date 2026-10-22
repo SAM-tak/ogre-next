@@ -102,6 +102,12 @@ namespace Ogre
         */
         void setupFont( ImFontAtlas *fontAtlas, bool bUseSynchronousUpload );
 
+        /** Frees the renderables and material made to draw the given texture. Call it before
+            destroying a texture that ImGui has drawn, once the frames that drew it are rendered:
+            they are kept by texture, and would otherwise outlive it.
+        */
+        void destroyResourcesFor( TextureGpu *texture );
+
         void prepareForRender( SceneManager *sceneManager );
 
         void drawIntoCompositor( RenderPassDescriptor *renderPassDesc, TextureGpu *anyTargetTexture,

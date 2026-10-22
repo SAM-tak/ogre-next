@@ -62,6 +62,8 @@ Based on the implementation in https://github.com/edherbert/ogre-next-imgui
 
 #include <imgui.h>
 
+#include <algorithm>
+
 using namespace Ogre;
 
 namespace Ogre
@@ -512,6 +514,38 @@ ImguiRenderable *ImguiManager::getAvailableRenderable( TextureGpu *texture )
     mScheduledRenderables.push_back( retVal );
 
     return retVal;
+}
+//-----------------------------------------------------------------------------
+void ImguiManager::destroyResourcesFor( TextureGpu *texture )
+{
+    VaoManager *vaoManager = Root::getSingleton().getRenderSystem()->getVaoManager();
+    const auto destroy = [vaoManager]( ImguiRenderable *renderable )
+    {
+        renderable->destroyBuffers( vaoManager );
+        delete renderable;
+    };
+
+    // The last frame's renderables are still scheduled until the next prepareForRender.
+    ImguiRenderableVec::iterator scheduled = std::remove_if(
+        mScheduledRenderables.begin(), mScheduledRenderables.end(),
+        [texture]( ImguiRenderable *renderable )
+        {
+            return renderable->getMaterial()
+                       ->getTechnique( 0u )
+                       ->getPass( 0u )
+                       ->getTextureUnitState( 0u )
+                       ->_getTexturePtr( 0u ) == texture;
+        } );
+    std::for_each( scheduled, mScheduledRenderables.end(), destroy );
+    mScheduledRenderables.erase( scheduled, mScheduledRenderables.end() );
+
+    ImguiRenderableMap::iterator available = mAvailableRenderables.find( texture );
+    if( available == mAvailableRenderables.end() )
+        return;
+    std::for_each( available->second.begin(), available->second.end(), destroy );
+    mAvailableRenderables.erase( available );
+
+    MaterialManager::getSingleton().remove( "!!OgreImgui_" + texture->getName().getReleaseText() );
 }
 //-----------------------------------------------------------------------------
 void ImguiManager::setupFont( ImFontAtlas *fontAtlas, bool bUseSynchronous )
