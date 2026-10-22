@@ -58,7 +58,9 @@ namespace Ogre
             ANIMBLEND_CUMULATIVE = 1
         };
 
-#define OGRE_MAX_NUM_BONES 256
+// v2 skeletons (SkeletonDef) are built from these and have no fixed bone limit; the 256 limit
+// of v1 shader-constant skinning only remains as the range of the 16-bit bone handles.
+#define OGRE_MAX_NUM_BONES 65535
 
         struct LinkedSkeletonAnimationSource;
 
